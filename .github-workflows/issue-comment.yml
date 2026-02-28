@@ -1,0 +1,45 @@
+name: assignment-003-update
+
+on:
+  issues:
+    types:
+      - opened
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  comment-with-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug GitHub event
+        run: echo '${{ toJSON(github.event) }}'
+
+      - name: Update comment using peter-evans action
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: 1
+          body: |
+            This is a multi-line test comment
+            - With GitHub **Markdown** :sparkles:
+            - Created by [create-or-update-comment][1]
+
+            [1]: https://github.com/peter-evans/create-or-update-comment
+          edit-mode: replace
+          reactions: '+1'
+
+  comment-with-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update comment with API
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_ID: 1
+        run: |
+          gh api \
+            --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/issues/comments/${COMMENT_ID} \
+            -f body='**Updated:** This comment was subjugated to a modification using GitHub API'
